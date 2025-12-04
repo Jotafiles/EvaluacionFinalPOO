@@ -1,0 +1,183 @@
+# ================================================================
+#   PROYECTO: Sistema de Reservas - Agencia "Viajes Aventura"
+#   Asignatura: Programación Orientada a Objeto Seguro - TI3021
+#   Contenido: Comentarios explicando TODO lo que se debe implementar
+# ================================================================
+
+# ------------------------------------------------
+# CLASE Destino
+# ------------------------------------------------
+# Atributos:
+#   - id
+#   - nombre
+#   - descripcion
+#   - actividades
+#   - costo
+#
+# Métodos que se deben implementar:
+#   - crear_destino(): guardar un destino en la base de datos
+#   - actualizar_destino(): editar destino existente
+#   - eliminar_destino(): borrar destino
+#   - mostrar_destino(): imprimir/retornar información del destino
+#
+# Método especial:
+#   - __str__(): retornar nombre, actividades y costo de manera legible
+
+# ------------------------------------------------
+# CLASE PaqueteTuristico
+# ------------------------------------------------
+# Atributos:
+#   - id
+#   - destinos (lista de objetos Destino)
+#   - fecha_inicio
+#   - fecha_fin
+#   - precio_total (se calcula automáticamente)
+#
+# Métodos:
+#   - agregar_destino(): añadir destinos a la lista del paquete
+#   - calcular_precio(): sumar costos de todos los destinos del paquete
+#   - guardar_paquete(): almacenar el paquete en la base de datos
+#   - mostrar_paquete(): retornar información del paquete
+#   - disponible_en_fecha(): verificar disponibilidad según fechas
+#
+# Método especial:
+#   - __str__(): retornar información resumida del paquete
+
+# ------------------------------------------------
+# CLASE Cliente
+# ------------------------------------------------
+# Atributos:
+#   - id
+#   - nombre
+#   - email
+#   - password_hash (contraseña encriptada)
+#
+# Métodos:
+#   - registrarse(): generar hash de contraseña y guardar usuario
+#   - iniciar_sesion(): validar email y verificar hash de contraseña
+#   - mostrar_cliente(): retornar datos generales del cliente
+#
+# Método especial:
+#   - __str__(): retornar nombre + email
+
+# ------------------------------------------------
+# CLASE Reserva
+# ------------------------------------------------
+# Atributos:
+#   - id
+#   - cliente_id
+#   - paquete_id
+#   - fecha_reserva
+#
+# Métodos:
+#   - crear_reserva(): insertar la reserva en la base de datos
+#   - mostrar_reserva(): retornar info de cliente, paquete y fecha
+#   - cancelar_reserva(): opcional
+#
+# Método especial:
+#   - __str__(): mostrar formato legible de la reserva
+
+# ------------------------------------------------
+# CLASE Sistema (o Gestor)
+# ------------------------------------------------
+# Esta clase controla TODA la lógica del programa.
+#
+# Atributos:
+#   - conexion_bd: conexión a SQLite
+#   - cursor_bd: cursor para ejecutar consultas
+#   - usuario_logueado: objeto Cliente tras login exitoso
+#
+# Métodos obligatorios:
+#
+#   *** Conexión y manejo de base de datos ***
+#   - conectar_bd(): crear conexión SQLite
+#   - crear_tablas(): generar tablas necesarias si no existen
+#
+#   *** Gestión de destinos ***
+#   - agregar_destino()
+#   - listar_destinos()
+#   - modificar_destino()
+#   - eliminar_destino()
+#
+#   *** Gestión de paquetes ***
+#   - crear_paquete()
+#   - listar_paquetes()
+#   - buscar_paquete_por_fecha()
+#
+#   *** Gestión de usuarios ***
+#   - registrar_usuario(): guardar usuario con contraseña hasheada
+#   - login(): validar credenciales
+#   - logout(): cerrar sesión
+#
+#   *** Gestión de reservas ***
+#   - crear_reserva()
+#   - listar_reservas()
+#   - listar_reservas_del_cliente()
+#
+#   *** Validaciones obligatorias ***
+#       - email único
+#       - contraseña mayor a 6 caracteres
+#       - fechas válidas
+#       - no permitir crear paquete sin destinos
+#       - evitar precios negativos
+#       - evitar operaciones sin usuario logueado
+
+# ------------------------------------------------
+# TABLAS OBLIGATORIAS EN LA BASE DE DATOS (SQLite)
+# ------------------------------------------------
+# Tabla clientes:
+#   id, nombre, email, password_hash
+#
+# Tabla destinos:
+#   id, nombre, descripcion, actividades, costo
+#
+# Tabla paquetes:
+#   id, fecha_inicio, fecha_fin, precio_total
+#
+# Tabla paquete_destino (tabla intermedia):
+#   id, paquete_id, destino_id
+#
+# Tabla reservas:
+#   id, cliente_id, paquete_id, fecha_reserva
+
+# ------------------------------------------------
+# FUNCIONALIDADES PRINCIPALES DEL PROGRAMA
+# ------------------------------------------------
+# Menú inicial (sin iniciar sesión):
+#   1. Registrarse
+#   2. Iniciar sesión
+#   3. Salir
+#
+# Menú de cliente logueado:
+#   - Ver destinos
+#   - Ver paquetes turísticos
+#   - Reservar un paquete
+#   - Ver mis reservas
+#   - Cerrar sesión
+#
+# Menú administrador (opcional):
+#   - Crear, modificar y eliminar destinos
+#   - Crear paquetes turísticos
+#   - Listar paquetes
+
+# ------------------------------------------------
+# AUTENTICACIÓN SEGURA
+# ------------------------------------------------
+# - Se debe usar hash de contraseña (bcrypt o hashlib + salt)
+# - Guardar SOLO el hash en la base de datos
+# - Verificar contraseña comparando el hash
+# - No permitir login si no coincide email/contraseña
+
+# ------------------------------------------------
+# EVALUACIÓN DEL PROYECTO
+# ------------------------------------------------
+# El programa debe demostrar:
+#   - Uso correcto de POO (clases + objetos)
+#   - Uso de métodos y __str__()
+#   - Uso de base de datos para almacenar información real
+#   - Uso de autenticación segura
+#   - CRUD completo de destinos
+#   - Creación y manejo de paquetes turísticos
+#   - Creación de reservas por parte del cliente logueado
+#   - Menús funcionales y claros
+#   - Código comentado, ordenado y seguro
