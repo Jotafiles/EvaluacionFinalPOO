@@ -237,7 +237,7 @@ try:
                                 print("Se ha eliminado con exito!")
 
                             elif op =="4":
-                                nombre = input("Ingresa el nombre del destino a eliminar: ")
+                                nombre = input("Ingresa el nombre del destino a buscar: ")
                                 filas = destinoDAO.buscar_destino(nombre)
                                 print(filas)
 
@@ -280,3 +280,4 @@ try:
 
 except Exception as e:
     print("Error:", e)
+
