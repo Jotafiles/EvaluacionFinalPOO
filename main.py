@@ -3,8 +3,8 @@ import oracledb
 import bcrypt
 
 class Destino:
-    def __init__(self, id, nombre, descripcion, actividades, costo):
-        self.id = id
+    def __init__(self, id_destino, nombre, descripcion, actividades, costo):
+        self.id_destino = id_destino
         self.nombre = nombre
         self.descripcion = descripcion
         self.actividades = actividades
@@ -15,7 +15,7 @@ class Destino:
         self.paquetesTuristicos.append(paquete)
 
     def __str__(self):
-        return f"{self.id} - {self.nombre} - {self.descripcion} - {self.actividades} - {self.costo}"
+        return f"ID: {self.id_destino} - {self.nombre} - {self.descripcion} - {self.actividades} - {self.costo}"
 
 
 class DestinoDAO:
@@ -24,8 +24,7 @@ class DestinoDAO:
 
     def crear_destino(self, destino):
         cursor = self.conexion.cursor()
-        cursor.execute("INSERT INTO DESTINO (nombre, descripcion, actividades, costo) VALUES (:1,:2,:3,:4)",
-                       (destino.nombre, destino.descripcion, destino.actividades, destino.costo))
+        cursor.execute("INSERT INTO DESTINO (nombre, descripcion, actividades, costo) VALUES (:1,:2,:3,:4)",(destino.nombre, destino.descripcion, destino.actividades, destino.costo))
         self.conexion.commit()
         fila = cursor.rowcount
         cursor.close()
@@ -33,7 +32,7 @@ class DestinoDAO:
 
     def mostrar_destino(self):
         cursor = self.conexion.cursor()
-        cursor.execute("SELECT * FROM DESTINOS")
+        cursor.execute("SELECT * FROM DESTINO")
         registros = cursor.fetchall()
         cursor.close()
         destinos = []
@@ -42,9 +41,9 @@ class DestinoDAO:
             destinos.append(d)
         return destinos
 
-    def eliminar_destino(self, id_dest):
+    def eliminar_destino(self, id_destino):
         cursor = self.conexion.cursor()
-        cursor.execute("DELETE FROM DESTINOS WHERE id = :1", (id_dest,))
+        cursor.execute("DELETE FROM DESTINO WHERE id_destino = :1", (id_destino,))
         self.conexion.commit()
         fila = cursor.rowcount
         cursor.close()
@@ -52,7 +51,7 @@ class DestinoDAO:
 
     def buscar_destino(self, nombre):
         cursor = self.conexion.cursor()
-        cursor.execute("SELECT * FROM DESTINOS WHERE nombre = :1", (nombre,))
+        cursor.execute("SELECT * FROM DESTINO WHERE nombre = :1", (nombre,))
         r = cursor.fetchone()
         cursor.close()
         if r:
@@ -221,10 +220,26 @@ try:
                                 costo = float(input("Costo: "))
 
                                 dest = Destino(None, nombre, descripcion, actividades, costo)
-                                destinoDAO.crear_destino(dest)
-                                print("Destino agregado.")
+                                fila = destinoDAO.crear_destino(dest)
+                                print("Destino agregado.",fila)
 
-                          
+                                ## funciona la opcion pero por una razon no llama el str de la clase destino y se imprime todo junto -_-
+                            elif op == "2":
+                                for d in destinoDAO.mostrar_destino():
+                                    print(d)
+
+                            elif op == "3":
+                                ##esto lo coloque mas que nada para saber que ids hay xd
+                                for d in destinoDAO.mostrar_destino():
+                                    print(d)
+                                id_destino = int(input("Ingrese el ID del destino a eliminar: "))
+                                filas = destinoDAO.eliminar_destino(id_destino)
+                                print("Se ha eliminado con exito!")
+
+                            elif op =="4":
+                                nombre = input("Ingresa el nombre del destino a eliminar: ")
+                                filas = destinoDAO.buscar_destino(nombre)
+                                print(filas)
 
                             elif op == "5":
                                 break
