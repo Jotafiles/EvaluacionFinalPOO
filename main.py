@@ -1,4 +1,3 @@
-import requests
 import oracledb
 import bcrypt
 
@@ -11,7 +10,8 @@ class Destino:
         self.costo = costo
 
     def __str__(self):
-        return f"{self.id_destino} - {self.nombre} - {self.descripcion} - {self.actividades} - {self.costo}"
+        return f"id: {self.id_destino} - nombre: {self.nombre} - descripcion: {self.descripcion} - actividades: {self.actividades} - costo: {self.costo}"
+
 
 class DestinoDAO:
     def __init__(self, conexion):
@@ -22,36 +22,33 @@ class DestinoDAO:
         cursor.execute("INSERT INTO Destino (nombre, descripcion, actividades, costo) VALUES (:1,:2,:3,:4)",
                        (destino.nombre, destino.descripcion, destino.actividades, destino.costo))
         self.conexion.commit()
-        fila = cursor.rowcount
         cursor.close()
-        return fila
 
     def mostrar_destino(self):
         cursor = self.conexion.cursor()
         cursor.execute("SELECT * FROM Destino")
-        registros = cursor.fetchall()
+        datos = cursor.fetchall()
         cursor.close()
-        destinos = []
-        for r in registros:
-            destinos.append(Destino(r[0], r[1], r[2], r[3], r[4]))
-        return destinos
+        lista = []
+        for d in datos:
+            lista.append(Destino(d[0], d[1], d[2], d[3], d[4]))
+        return lista
 
     def eliminar_destino(self, id_destino):
         cursor = self.conexion.cursor()
         cursor.execute("DELETE FROM Destino WHERE id_destino = :1", (id_destino,))
         self.conexion.commit()
-        fila = cursor.rowcount
         cursor.close()
-        return fila
 
     def buscar_destino(self, nombre):
         cursor = self.conexion.cursor()
-        cursor.execute("SELECT * FROM Destino WHERE nombre = :1", (nombre,))
-        r = cursor.fetchone()
+        cursor.execute("SELECT * FROM Destino WHERE LOWER(nombre) = :1", (nombre.lower(),))
+        d = cursor.fetchone()
         cursor.close()
-        if r:
-            return Destino(r[0], r[1], r[2], r[3], r[4])
+        if d:
+            return Destino(d[0], d[1], d[2], d[3], d[4])
         return None
+
 
 class PaqueteTuristico:
     def __init__(self, id, destino_id, fecha_inicio, fecha_fin, precio_total):
@@ -60,6 +57,10 @@ class PaqueteTuristico:
         self.fecha_inicio = fecha_inicio
         self.fecha_fin = fecha_fin
         self.precio_total = precio_total
+
+    def __str__(self):
+        return f"id: {self.id} - destino: {self.destino_id} - inicio: {self.fecha_inicio} - fin: {self.fecha_fin} - precio: {self.precio_total}"
+
 
 class PaqueteTuristicoDAO:
     def __init__(self, conexion):
@@ -70,16 +71,18 @@ class PaqueteTuristicoDAO:
         cursor.execute("INSERT INTO Paquetes (destino_id, fecha_inicio, fecha_fin, precio_paquete) VALUES (:1,:2,:3,:4)",
                        (paquete.destino_id, paquete.fecha_inicio, paquete.fecha_fin, paquete.precio_total))
         self.conexion.commit()
-        fila = cursor.rowcount
         cursor.close()
-        return fila
 
     def mostrar_paquetes(self):
         cursor = self.conexion.cursor()
         cursor.execute("SELECT * FROM Paquetes")
-        filas = cursor.fetchall()
+        datos = cursor.fetchall()
         cursor.close()
-        return filas
+        lista = []
+        for p in datos:
+            lista.append(PaqueteTuristico(p[0], p[1], p[2], p[3], p[4]))
+        return lista
+
 
 class Cliente:
     def __init__(self, id_cliente, nombre, clave, is_admin):
@@ -87,6 +90,7 @@ class Cliente:
         self.nombre = nombre
         self.clave = clave
         self.is_admin = bool(is_admin)
+
 
 class ClienteDAO:
     def __init__(self, conexion):
@@ -97,18 +101,17 @@ class ClienteDAO:
         cursor.execute("INSERT INTO Clientes (nombre, clave, is_admin) VALUES (:1,:2,:3)",
                        (user.nombre, user.clave, int(user.is_admin)))
         self.conexion.commit()
-        fila = cursor.rowcount
         cursor.close()
-        return fila
 
     def iniciar_sesion(self, nombre):
         cursor = self.conexion.cursor()
         cursor.execute("SELECT id_cliente, nombre, clave, is_admin FROM Clientes WHERE nombre = :1", (nombre,))
-        r = cursor.fetchone()
+        d = cursor.fetchone()
         cursor.close()
-        if r:
-            return Cliente(r[0], r[1], r[2], r[3])
+        if d:
+            return Cliente(d[0], d[1], d[2], d[3])
         return None
+
 
 class Reserva:
     def __init__(self, id, cliente_id, paquete_id, fecha_reserva):
@@ -116,6 +119,10 @@ class Reserva:
         self.cliente_id = cliente_id
         self.paquete_id = paquete_id
         self.fecha_reserva = fecha_reserva
+
+    def __str__(self):
+        return f"id: {self.id} - cliente: {self.cliente_id} - paquete: {self.paquete_id} - fecha: {self.fecha_reserva}"
+
 
 class ReservaDAO:
     def __init__(self, conexion):
@@ -126,25 +133,28 @@ class ReservaDAO:
         cursor.execute("INSERT INTO Reservas (id_cliente, id_paquete, fecha_reserva) VALUES (:1,:2,:3)",
                        (reserva.cliente_id, reserva.paquete_id, reserva.fecha_reserva))
         self.conexion.commit()
-        fila = cursor.rowcount
         cursor.close()
-        return fila
 
     def mostrar_reservas(self):
         cursor = self.conexion.cursor()
         cursor.execute("SELECT * FROM Reservas")
-        filas = cursor.fetchall()
+        datos = cursor.fetchall()
         cursor.close()
-        return filas
+        lista = []
+        for r in datos:
+            lista.append(Reserva(r[0], r[1], r[2], r[3]))
+        return lista
 
-def hashear(password):
-    b = password.encode("utf-8")
+
+def hashear(p):
+    b = p.encode("utf-8")
     salt = bcrypt.gensalt()
     h = bcrypt.hashpw(b, salt)
     return h.decode()
 
-def verificarPassword(intento, hasheado):
-    return bcrypt.checkpw(intento.encode("utf-8"), hasheado.encode("utf-8"))
+def verificarPassword(intento, real):
+    return bcrypt.checkpw(intento.encode("utf-8"), real.encode("utf-8"))
+
 
 try:
     conexion = oracledb.connect(
@@ -159,137 +169,200 @@ try:
     reservaDAO = ReservaDAO(conexion)
 
     while True:
-        print('/'*30)
-        print("Menu de Registro")
+        print("/"*35)
         print("1. Registrar usuario")
         print("2. Iniciar sesion")
         print("3. Salir")
-        select = input("Seleccione una opcion: ")
+        op = input("Opcion: ")
 
-        if select == "1":
-            nombre = input("Nombre: ")
+        if op == "1":
+            nombre = input("Nombre: ").strip().lower()
             if clienteDAO.iniciar_sesion(nombre):
                 print("Ese nombre ya existe.")
             else:
                 clave = input("Contraseña: ")
                 clave_h = hashear(clave)
-                print("¿Es admin? (1 = Sí / 0 = No)")
-                is_admin = int(input("-> "))
+                try:
+                    is_admin = int(input("¿Es admin? (1/0): "))
+                except:
+                    is_admin = 0
                 user = Cliente(None, nombre, clave_h, is_admin)
-                fila = clienteDAO.Registrarse(user)
+                clienteDAO.Registrarse(user)
                 print("Registrado.")
 
-        elif select == "2":
-            nombre = input("Nombre de usuario: ")
+        elif op == "2":
+            nombre = input("Nombre: ").strip().lower()
             cliente = clienteDAO.iniciar_sesion(nombre)
 
             if cliente:
                 clave = input("Contraseña: ")
                 if verificarPassword(clave, cliente.clave):
-                    print("Bienvenido", cliente.nombre)
 
                     if cliente.is_admin:
                         while True:
-                            print("------ Menú Administrador ------")
-                            print("1. Agregar Destino")
-                            print("2. Mostrar Destinos")
-                            print("3. Eliminar Destino")
-                            print("4. Buscar Destino")
-                            print("5. Crear Paquete")
-                            print("6. Mostrar Paquetes")
-                            print("7. Ver Reservas")
-                            print("8. Cerrar Sesión")
-                            op = input("Opción: ")
+                            print("---- ADMIN ----")
+                            print("1. Agregar destino")
+                            print("2. Mostrar destinos")
+                            print("3. Eliminar destino")
+                            print("4. Buscar destino")
+                            print("5. Crear paquete")
+                            print("6. Mostrar paquetes")
+                            print("7. Ver reservas")
+                            print("8. Cerrar")
+                            op2 = input("Opcion: ")
 
-                            if op == "1":
-                                n = input("Nombre destino: ")
-                                dsc = input("Descripción: ")
+                            if op2 == "1":
+                                n = input("Nombre: ")
+                                dsc = input("Descripcion: ")
                                 act = input("Actividades: ")
-                                costo = float(input("Costo: "))
+                                while True:
+                                    try:
+                                        costo = float(input("Costo: "))
+                                        break
+                                    except:
+                                        print("Ingrese numero.")
                                 dest = Destino(None, n, dsc, act, costo)
                                 destinoDAO.crear_destino(dest)
                                 print("Destino agregado.")
 
-                            elif op == "2":
-                                for d in destinoDAO.mostrar_destino():
+                            elif op2 == "2":
+                                lista = destinoDAO.mostrar_destino()
+                                for d in lista:
                                     print(d)
 
-                            elif op == "3":
-                                for d in destinoDAO.mostrar_destino():
+                            elif op2 == "3":
+                                lista = destinoDAO.mostrar_destino()
+                                for d in lista:
                                     print(d)
-                                did = int(input("ID destino: "))
-                                destinoDAO.eliminar_destino(did)
-                                print("Destino eliminado.")
+                                try:
+                                    eliminar = int(input("ID: "))
+                                except:
+                                    print("ID invalido.")
+                                    continue
+                                destinoDAO.eliminar_destino(eliminar)
+                                print("Eliminado.")
 
-                            elif op == "4":
-                                n = input("Nombre del destino: ")
+                            elif op2 == "4":
+                                n = input("Nombre: ")
                                 print(destinoDAO.buscar_destino(n))
 
-                            elif op == "5":
-                                destinos = destinoDAO.mostrar_destino()
-                                for d in destinos:
+                            elif op2 == "5":
+                                lista = destinoDAO.mostrar_destino()
+                                if not lista:
+                                    print("No hay destinos.")
+                                    continue
+                                for d in lista:
                                     print(d)
-                                did = int(input("ID destino: "))
+                                try:
+                                    did = int(input("ID destino: "))
+                                except:
+                                    print("ID invalido.")
+                                    continue
+                                existe = False
+                                costo = 0
+                                for d in lista:
+                                    if d.id_destino == did:
+                                        existe = True
+                                        costo = d.costo
+                                if not existe:
+                                    print("No existe.")
+                                    continue
                                 fi = input("Fecha inicio: ")
                                 ff = input("Fecha fin: ")
-                                precio = 0
-                                for d in destinos:
-                                    if d.id_destino == did:
-                                        precio = d.costo
-                                        break
-                                paquete = PaqueteTuristico(None, did, fi, ff, precio)
-                                paqueteDAO.crear_paquete(paquete)
-                                print("Paquete creado.")
+                                p = PaqueteTuristico(None, did, fi, ff, costo)
+                                try:
+                                    paqueteDAO.crear_paquete(p)
+                                except:
+                                    print("Error al crear paquete.")
+                                else:
+                                    print("Paquete creado.")
 
-                            elif op == "6":
-                                for p in paqueteDAO.mostrar_paquetes():
+                            elif op2 == "6":
+                                lista = paqueteDAO.mostrar_paquetes()
+                                for p in lista:
                                     print(p)
 
-                            elif op == "7":
-                                for r in reservaDAO.mostrar_reservas():
+                            elif op2 == "7":
+                                lista = reservaDAO.mostrar_reservas()
+                                for r in lista:
                                     print(r)
 
-                            elif op == "8":
+                            elif op2 == "8":
                                 break
 
                     else:
                         while True:
-                            print("----- Menú Cliente -----")
+                            print("---- CLIENTE ----")
                             print("1. Ver destinos")
                             print("2. Reservar paquete")
-                            print("3. Ver mis reservas")
+                            print("3. Mis reservas")
                             print("4. Ver paquetes")
-                            print("5. Cerrar sesión")
-                            op = input("Opción: ")
+                            print("5. Cerrar")
+                            op3 = input("Opcion: ")
 
-                            if op == "1":
-                                for d in destinoDAO.mostrar_destino():
+                            if op3 == "1":
+                                lista = destinoDAO.mostrar_destino()
+                                for d in lista:
                                     print(d)
 
-                            elif op == "2":
-                                paquetes = paqueteDAO.mostrar_paquetes()
-                                for p in paquetes:
+                            elif op3 == "2":
+                                lista = paqueteDAO.mostrar_paquetes()
+                                if not lista:
+                                    print("No hay paquetes.")
+                                    continue
+                                for p in lista:
                                     print(p)
-                                pid = int(input("ID del paquete: "))
+                                try:
+                                    pid = int(input("ID paquete: "))
+                                except:
+                                    print("ID invalido.")
+                                    continue
+                                existe = False
+                                for p in lista:
+                                    if p.id == pid:
+                                        existe = True
+                                if not existe:
+                                    print("No existe.")
+                                    continue
                                 fecha = input("Fecha reserva: ")
-                                reserva = Reserva(None, cliente.id_cliente, pid, fecha)
-                                reservaDAO.crear_reserva(reserva)
-                                print("Reserva creada.")
+                                r = Reserva(None, cliente.id_cliente, pid, fecha)
+                                try:
+                                    reservaDAO.crear_reserva(r)
+                                except:
+                                    print("No se pudo reservar.")
+                                else:
+                                    print("Reservado.")
 
-                            elif op == "3":
-                                for r in reservaDAO.mostrar_reservas():
-                                    print(r)
+                            elif op3 == "3":
+                                lista = reservaDAO.mostrar_reservas()
+                                hay = False
+                                for r in lista:
+                                    if r.cliente_id == cliente.id_cliente:
+                                        print(r)
+                                        hay = True
+                                if not hay:
+                                    print("No tiene reservas.")
 
-                            elif op == "4":
-                                for p in paqueteDAO.mostrar_paquetes():
+                            elif op3 == "4":
+                                lista = paqueteDAO.mostrar_paquetes()
+                                for p in lista:
                                     print(p)
+
+                            elif op3 == "5":
+                                break
+
                 else:
                     print("Contraseña incorrecta.")
             else:
                 print("Usuario no encontrado.")
 
-        elif select == "3":
+        elif op == "3":
             break
 
 except Exception as e:
     print("Error:", e)
+
+
+# ----------------------------------------------
+# Código creado por el grupo: Pa que try si igual Except :)
+# ----------------------------------------------
